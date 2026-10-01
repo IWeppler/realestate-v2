@@ -1,0 +1,506 @@
+@import "tailwindcss";
+
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   TERRANOVA — DESIGN SYSTEM DEL PANEL
+   Un solo sistema, definido en :root. Sin scopes por ruta.
+   Reglas: color solo con significado; neutros mate; una familia
+   tipográfica (Inter) en el producto; radios 4/6/10; sombras casi
+   inexistentes salvo en capas flotantes.
+   ============================================================ */
+
+@theme inline {
+  /* --- FUENTES ---
+     --font-sans (Inter) es la del producto. Instrument Serif (titulares)
+     y Geist (texto) son del sitio público: se cargan en app/(public)/layout.tsx y llegan como
+     --site-font-display / --site-font-body. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--site-font-display, Georgia), serif;
+  --font-general: var(--site-font-body, ui-sans-serif), sans-serif;
+
+  /* --- COLOR DE MARCA ---
+     Indirecto vía --brand-main: el panel lo define en :root y el sitio
+     público lo pisa en su scope. */
+  --color-main: var(--brand-main);
+  --color-main-red: #c4171d;
+  --color-main-soft: var(--brand-main-soft);
+  --color-main-hover: var(--brand-main-hover);
+
+  /* --- SUPERFICIES Y TEXTO (semánticos) --- */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-sunken: var(--sunken);
+  /* Solo el sitio público lo define (fondo crema de secciones alternas). */
+  --color-surface-alt: var(--surface-alt, var(--background));
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  /* --- TONOS SEMÁNTICOS (utilidades) --- */
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+
+  /* --- shadcn/ui --- */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+}
+
+/* Tipografía y escala del producto como variables de :root (no en
+   @theme inline) para que el sitio público pueda restaurar las suyas
+   con el scope `.site-public` sin duplicar el sistema. Tailwind v4
+   compila `text-sm` a var(--text-sm), así que el override por scope
+   funciona. */
+html,
+body {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   SITIO PÚBLICO — TOKENS DE MARCA
+   Independientes del panel. Se aplican al wrapper `.site-public` y a
+   <body> mientras el sitio público está montado, así los portales de
+   Radix (selects, popovers, menús, toasts) heredan lo mismo.
+   Paleta tomada de trumpaccounts.gov (referencia elegida por el
+   usuario): fondos arena (#f2eee6) y crema (#f9f6f0) que alternan por
+   sección, tinta pizarra (#212c33), acción en azul marino (#2d3a50) y
+   arena tostada (#e5cfa0) solo para bloques de acento.
+   Siempre claro: no reacciona al `.dark` del panel.
+   Radios: 10 controles, 16-24 cards, 32 bloques, 40 bloques grandes;
+   botones y toggles en píldora.
+   ============================================================ */
+.site-public,
+body:has(.site-public) {
+  color-scheme: light;
+  /* Instrument Serif solo tiene peso 400: nunca inventar una negrita. */
+  font-synthesis-weight: none;
+
+  --brand-main: #2d3a50;
+  --brand-main-hover: #212c33;
+  --brand-main-soft: #e5cfa0;
+
+  --background: #f2eee6;
+  --surface-alt: #f9f6f0;
+  --foreground: #212c33;
+  --sunken: #e9e3d7;
+  --fg-secondary: #3a3b45;
+  --fg-disabled: #a19c91;
+  --border-subtle: #e6e0d4;
+  --border-strong: #c9c1b2;
+
+  --card: #fdfcf9;
+  --card-foreground: #212c33;
+  --popover: #fdfcf9;
+  --popover-foreground: #212c33;
+
+  --primary: #2d3a50;
+  --primary-foreground: #f9f7f1;
+  --secondary: #e9e3d7;
+  --secondary-foreground: #212c33;
+  --muted: #e9e3d7;
+  --muted-foreground: #465660;
+  --accent: #e9e3d7;
+  --accent-foreground: #212c33;
+  --destructive: #b42318;
+  --border: #ddd6c9;
+  --input: #cfc7b8;
+  --ring: #2d3a50;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --radius-4xl: 40px;
+
+  /* Directo a --site-font-body: --font-general se resuelve en :root,
+     donde esa variable no existe. */
+  font-family: var(--site-font-body, ui-sans-serif), sans-serif;
+  font-variant-numeric: normal;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+}
+
+/* Entrada del hero del sitio público (solo CSS, sin JS). La foto se
+   asienta y el texto sube en cascada con --rise-delay. Con "reducir
+   movimiento" no se anima nada. */
+@keyframes site-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes site-settle {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Cambio de contenido sin mover el encabezado (ej. lista ↔ mapa). */
+@keyframes site-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Marquee del hero: la pista lleva la lista dos veces y se corre la mitad
+   de su ancho, así el loop no tiene salto. La duración la fija el
+   componente según la cantidad de ítems (--marquee-duration). */
+@keyframes site-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-marquee {
+    animation: site-marquee var(--marquee-duration, 60s) linear infinite;
+  }
+  /* Pausa para mirar o hacer clic (mouse o teclado). */
+  .site-marquee-wrap:hover .site-marquee,
+  .site-marquee-wrap:focus-within .site-marquee {
+    animation-play-state: paused;
+  }
+  .site-fade {
+    animation: site-fade 0.25s ease-out both;
+  }
+  .site-rise {
+    animation: site-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--rise-delay, 0ms) both;
+  }
+  .site-settle {
+    animation: site-settle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+:root {
+  --radius: 6px;
+
+  --brand-main: #004fbe;
+  --brand-main-soft: #e6eefa;
+  --brand-main-hover: #003f98;
+
+  /* Escala tipográfica del panel (6 pasos): 12 meta y labels de
+     tabla, 13 información, 14 contenido, 16 título de sección,
+     20 título de página, 24 KPI. */
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 20px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
+  --text-lg: 16px;
+  --text-lg--line-height: 24px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+
+  /* Radios: tres valores (4 badges, 6 controles, 10 cards y modales) */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 10px;
+
+  /* Sombras: solo capas flotantes */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.12);
+  --shadow-xl: 0 12px 32px rgb(0 0 0 / 0.12);
+
+  /* Base gris cálida mate; cards y sidebar comparten superficie. */
+  --background: #efeee9;
+  --foreground: #20211f;
+  --sunken: #ebeae5;
+  --fg-secondary: #575b57;
+  --fg-disabled: #999d98;
+  --border-subtle: #e5e3de;
+  --border-strong: #bcbeb9;
+
+  --card: #f8f7f3;
+  --card-foreground: #20211f;
+  --popover: #fbfaf7;
+  --popover-foreground: #20211f;
+
+  /* Acento: única decisión de marca dentro del producto (ciruela) */
+  --primary: #6b3f63;
+  --primary-foreground: #ffffff;
+
+  --secondary: #ebeae5;
+  --secondary-foreground: #20211f;
+  --muted: #ebeae5;
+  --muted-foreground: #676b66;
+  --accent: #ebeae5;
+  --accent-foreground: #20211f;
+  --destructive: #b91c1c;
+  --border: #deddd7;
+  --input: #d4d4ce;
+  --ring: #6b3f63;
+
+  /* Tonos semánticos: fg (texto, contraste AA) / bg / border. Los *-vivid
+     son para íconos y puntos de estado: más saturados, escaneables. */
+  --success-vivid: #16a34a;
+  --warning-vivid: #f59e0b;
+  --danger-vivid: #ef4444;
+  --info-vivid: #3b82f6;
+  --accent-vivid: #a3478f;
+  --neutral-vivid: #9ca3af;
+
+  --success: #15803d;
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+  --warning: #b45309;
+  --warning-bg: #fffbeb;
+  --warning-border: #fde68a;
+  --danger: #b91c1c;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+  --info: #1d4ed8;
+  --info-bg: #eff6ff;
+  --info-border: #bfdbfe;
+
+  /* Estados de dominio → tono semántico. Variables planas (se leen con
+     var() desde estilos inline). Propiedad: disponible = success, en
+     transición = warning, cerrada = neutro. Lead: nuevo = acento,
+     hito = info, negociación = warning, ganado = success, resto = neutro. */
+  --color-en-venta: var(--success);
+  --color-en-venta-bg: var(--success-bg);
+  --color-en-alquiler: var(--success);
+  --color-en-alquiler-bg: var(--success-bg);
+  --color-reservado: var(--warning);
+  --color-reservado-bg: var(--warning-bg);
+  --color-vendido: var(--muted-foreground);
+  --color-vendido-bg: var(--sunken);
+  --color-alquilado: var(--muted-foreground);
+  --color-alquilado-bg: var(--sunken);
+  --color-lead-nuevo: var(--primary);
+  --color-lead-nuevo-bg: #f4e9f1;
+  --color-lead-contactado: var(--muted-foreground);
+  --color-lead-contactado-bg: var(--sunken);
+  --color-lead-visita: var(--info);
+  --color-lead-visita-bg: var(--info-bg);
+  --color-lead-negociacion: var(--warning);
+  --color-lead-negociacion-bg: var(--warning-bg);
+  --color-lead-cerrado: var(--success);
+  --color-lead-cerrado-bg: var(--success-bg);
+  --color-lead-descartado: var(--fg-disabled);
+  --color-lead-descartado-bg: var(--sunken);
+
+  /* Paleta categórica de gráficos (única excepción "no funcional") */
+  --chart-1: #ff5329;
+  --chart-2: #d9e5d7;
+  --chart-3: #968aaa;
+  --chart-4: #8e8000;
+  --chart-5: #1597d0;
+  --chart-6: #f06efe;
+
+  /* Sidebar comparte superficie con las cards; activo usa un tono hundido. */
+  --sidebar: var(--card);
+  --sidebar-foreground: #575b57;
+  --sidebar-primary: #20211f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebeae5;
+  --sidebar-accent-foreground: #20211f;
+  --sidebar-border: #deddd7;
+  --sidebar-ring: #6b3f63;
+}
+
+.dark {
+  --background: #1c1d1c;
+  --foreground: #e9e9e5;
+  --sunken: #191a19;
+  --fg-secondary: #bbbfba;
+  --fg-disabled: #828781;
+  --border-subtle: #30322f;
+  --border-strong: #686d66;
+
+  --card: #232523;
+  --card-foreground: #e9e9e5;
+  --popover: #2a2c29;
+  --popover-foreground: #e9e9e5;
+  --primary: #d9aecd;
+  --primary-foreground: #36182e;
+  --secondary: #2e312d;
+  --secondary-foreground: #e9e9e5;
+  --muted: #2e312d;
+  --muted-foreground: #a9aea8;
+  --accent: #343733;
+  --accent-foreground: #e9e9e5;
+  --destructive: #ed9993;
+  --border: #40433e;
+  --input: #50544e;
+  --ring: #d9aecd;
+
+  --success: #7ee4a2;
+  --success-bg: #24372a;
+  --success-border: #42694b;
+  --warning: #f8c27c;
+  --warning-bg: #3b3024;
+  --warning-border: #776046;
+  --danger: #ff9a9a;
+  --danger-bg: #402b2b;
+  --danger-border: #795050;
+  --info: #9bc0ff;
+  --info-bg: #283546;
+  --info-border: #49617e;
+  --color-lead-nuevo-bg: #3d2b39;
+
+  /* Misma paleta, un paso más luminosa para la card oscura. */
+  --chart-1: #ff5329;
+  --chart-2: #d9e5d7;
+  --chart-3: #968aaa;
+  --chart-4: #8e8000;
+  --chart-5: #1597d0;
+  --chart-6: #f06efe;
+
+  --sidebar: var(--card);
+  --sidebar-foreground: #bbbfba;
+  --sidebar-primary: #d9aecd;
+  --sidebar-primary-foreground: #36182e;
+  --sidebar-accent: #343733;
+  --sidebar-accent-foreground: #e9e9e5;
+  --sidebar-border: #40433e;
+  --sidebar-ring: #d9aecd;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Scrollbars finas en todo el producto (Firefox + WebKit). En @layer
+   base para que las utilidades (ej. [scrollbar-width:none] en carruseles)
+   puedan pisarlas. */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+}
+
+/* mapcn / MapLibre: los controles y popups quedan dentro del mapa. */
+.maplibregl-map {
+  isolation: isolate;
+  z-index: 0;
+  font-family: inherit;
+}
+
+.maplibregl-popup-content {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.maplibregl-popup-tip {
+  display: none;
+}
+
+.maplibregl-ctrl-attrib {
+  background: var(--background) !important;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--muted-foreground);
+}
+
+.maplibregl-ctrl-attrib a:hover {
+  color: var(--foreground);
+}
+
+@media print {
+  [data-slot="sidebar"],
+  [data-slot="sidebar-gap"],
+  header.sticky {
+    display: none !important;
+  }
+}
