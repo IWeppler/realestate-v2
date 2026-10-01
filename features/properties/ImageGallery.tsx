@@ -9,169 +9,21 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  Images,
-  Expand,
 } from "lucide-react";
 
-type ImageGalleryProps = {
-  images: string[];
-  title?: string;
-};
+// Lightbox de fotos de la ficha (lo abre PropertyMedia). La grilla de
+// fotos que vivía acá se reemplazó por la portada + tira de PropertyMedia.
+
+// --- Lightbox con zoom (rueda, pinch, doble click/tap), paneo y swipe ---
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
 const DOUBLE_TAP_SCALE = 2.5;
 const SWIPE_THRESHOLD = 60;
 
-export function ImageGallery({ images, title = "la propiedad" }: ImageGalleryProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [mobileIndex, setMobileIndex] = useState(0);
-  const mobileTrackRef = useRef<HTMLDivElement>(null);
-
-  const openModal = useCallback((index: number) => {
-    setCurrentIndex(index);
-    setIsModalOpen(true);
-  }, []);
-
-  // Índice visible del carrusel móvil según el scroll horizontal.
-  const handleMobileScroll = useCallback(() => {
-    const track = mobileTrackRef.current;
-    if (!track) return;
-    setMobileIndex(Math.round(track.scrollLeft / track.clientWidth));
-  }, []);
-
-  if (!images || images.length === 0) {
-    return (
-      <div className="flex h-[320px] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 text-zinc-500 md:h-[480px]">
-        <Images className="h-8 w-8 opacity-50" />
-        No hay imágenes disponibles
-      </div>
-    );
-  }
-
-  const gridImages = images.slice(0, 5);
-  const remainingCount = images.length - gridImages.length;
-
-  return (
-    <>
-      {/* --- MÓVIL: carrusel con snap, contador y puntos --- */}
-      <div className="relative -mx-4 md:hidden">
-        <div
-          ref={mobileTrackRef}
-          onScroll={handleMobileScroll}
-          className="flex aspect-4/3 snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {images.map((src, idx) => (
-            <button
-              key={`mobile-${idx}`}
-              type="button"
-              aria-label={`Abrir foto ${idx + 1} de ${images.length}`}
-              className="relative h-full w-full shrink-0 snap-center bg-zinc-100"
-              onClick={() => openModal(idx)}
-            >
-              <Image
-                src={src}
-                alt={`Foto ${idx + 1} de ${title}`}
-                fill
-                sizes="100vw"
-                className="object-cover"
-                priority={idx === 0}
-              />
-            </button>
-          ))}
-        </div>
-        <div className="pointer-events-none absolute right-3 bottom-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
-          <Images className="h-3.5 w-3.5" />
-          {mobileIndex + 1} / {images.length}
-        </div>
-        {images.length > 1 && images.length <= 12 && (
-          <div className="pointer-events-none absolute bottom-3.5 left-1/2 flex -translate-x-1/2 gap-1.5">
-            {images.map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-1.5 rounded-full bg-white transition-all ${
-                  idx === mobileIndex ? "w-4 opacity-100" : "w-1.5 opacity-60"
-                }`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* --- ESCRITORIO: grilla asimétrica --- */}
-      <div className="relative hidden md:block">
-        <div className="grid h-[520px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-2xl lg:h-[580px]">
-          {gridImages.map((src, idx) => {
-            const span =
-              images.length === 1
-                ? "col-span-4 row-span-2"
-                : idx === 0
-                  ? "col-span-2 row-span-2"
-                  : images.length === 2
-                    ? "col-span-2 row-span-2"
-                    : images.length === 3
-                      ? "col-span-2"
-                      : images.length === 4 && idx === 1
-                        ? "col-span-2"
-                        : "col-span-1";
-            return (
-              <button
-                key={`${src}-${idx}`}
-                type="button"
-                aria-label={`Abrir foto ${idx + 1} de ${images.length}`}
-                className={`group relative h-full w-full cursor-zoom-in overflow-hidden bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset ${span}`}
-                onClick={() => openModal(idx)}
-              >
-                <Image
-                  src={src}
-                  alt={idx === 0 ? `Foto principal de ${title}` : `Foto ${idx + 1} de ${title}`}
-                  fill
-                  sizes={idx === 0 ? "(min-width: 1480px) 740px, 50vw" : "(min-width: 1480px) 370px, 25vw"}
-                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                  priority={idx === 0}
-                />
-                <span className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
-                {idx === 4 && remainingCount > 0 && (
-                  <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/55 text-white transition-colors group-hover:bg-black/65">
-                    <span className="font-display text-3xl font-normal">+{remainingCount}</span>
-                    <span className="text-sm text-white/80">fotos más</span>
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          onClick={() => openModal(0)}
-          className="absolute right-4 bottom-4 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white/95 px-4 py-2 text-sm font-medium text-zinc-900 shadow-md backdrop-blur transition hover:bg-white hover:shadow-lg"
-        >
-          <Expand className="h-4 w-4" />
-          Ver las {images.length} fotos
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {isModalOpen && (
-          <Lightbox
-            images={images}
-            title={title}
-            index={currentIndex}
-            onIndexChange={setCurrentIndex}
-            onClose={() => setIsModalOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
-
-// --- Lightbox con zoom (rueda, pinch, doble click/tap), paneo y swipe ---
-
 type Point = { x: number; y: number };
 
-function Lightbox({
+export function Lightbox({
   images,
   title,
   index,

@@ -1,36 +1,43 @@
 import { createClientServer } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Metadata } from "next";
 import { BRAND, formatLocation, formatPrice } from "@/lib/brand";
 import {
-  MapPin,
+  ArrowLeft,
+  ArrowRight,
   Bath,
   BedDouble,
-  Ruler,
   Building,
+  CalendarClock,
   Car,
-  CheckCircle,
-  ArrowRight,
-  ArrowLeft,
+  Check,
   DoorOpen,
+  MapPin,
   Maximize2,
   Navigation,
   Receipt,
-  CalendarClock,
+  Ruler,
   Tag,
 } from "lucide-react";
 
 import { ClientPropertyMap } from "@/features/properties/ClientPropertyMap";
-import { ImageGallery } from "@/features/properties/ImageGallery";
 import { DescriptionWithReadMore } from "@/features/properties/DescriptionReadMore";
-import { AgentCard, MobileContactBar } from "@/features/public/AgentCard";
-import { ViewCounter } from "@/features/public/ViewCounter";
 import { PropertyJsonLd } from "@/features/public/seo/PropertyJsonLd";
 import { PropertyFullDetails } from "@/features/properties/types/index";
 import { ShareButton } from "@/features/properties/ShareButton";
 import { FactChip, KeyFacts, type Fact } from "@/features/properties/KeyFacts";
+import PropertyCard from "@/features/properties/PropertyCard";
+import type { PropertyCardData } from "@/app/types/entities";
+import { ViewCounter } from "@/features/public/v2/ViewCounter";
+import { PropertyMedia } from "@/features/public/v2/PropertyMedia";
+import {
+  MobileContactBar,
+  PropertyContactCard,
+  PropertyInquiryForm,
+} from "@/features/public/v2/PropertyContact";
+import { Reveal } from "@/features/public/v2/Reveal";
+import { SplitHeading, StaggerItem } from "@/features/public/v2/motion";
 
 // --- Carga de Datos Principal ---
 async function getPropertyDetails(
@@ -62,32 +69,31 @@ async function getPropertyDetails(
 }
 
 // --- Cargar Recomendados ---
+// Mismas tarjetas que el listado. Primero misma ciudad y operación; si no
+// hay, misma operación en cualquier ciudad.
+const RECO_FIELDS =
+  "id, title, price, currency, bedrooms, bathrooms, total_area, cocheras, city, street_address, status, property_images ( image_url, order )";
+
 async function getRecommendedProperties(
   currentId: string,
   city: string | null,
   operationType: string,
-) {
+): Promise<PropertyCardData[]> {
   const supabase = await createClientServer();
 
-  // 1. Buscamos primero en la misma ciudad y misma operación
   let { data } = await supabase
     .from("properties")
-    .select(
-      "id, title, price, currency, city, province, bedrooms, total_area, property_images(image_url)",
-    )
+    .select(RECO_FIELDS)
     .eq("operation_type", operationType)
     .in("status", ["EN_VENTA", "EN_ALQUILER"])
     .eq("city", city || "")
     .neq("id", currentId)
     .limit(3);
 
-  // 2. FALLBACK: Si no encuentra suficientes en la misma ciudad, busca en cualquier ciudad
   if (!data || data.length === 0) {
     const fallback = await supabase
       .from("properties")
-      .select(
-        "id, title, price, currency, city, province, bedrooms, total_area, property_images(image_url)",
-      )
+      .select(RECO_FIELDS)
       .eq("operation_type", operationType)
       .in("status", ["EN_VENTA", "EN_ALQUILER"])
       .neq("id", currentId)
@@ -96,7 +102,7 @@ async function getRecommendedProperties(
     data = fallback.data;
   }
 
-  return data || [];
+  return (data ?? []) as PropertyCardData[];
 }
 
 // --- Metadata (SEO / OG) ---
@@ -163,24 +169,26 @@ export async function generateMetadata({
   };
 }
 
-// --- Helpers Visuales ---
-function TechSpecItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null;
-}) {
-  if (value === null || value === undefined || value === "") return null;
+const STATUS_LABELS: Record<string, string> = {
+  EN_VENTA: "En venta",
+  EN_ALQUILER: "En alquiler",
+  RESERVADO: "Reservada",
+  VENDIDO: "Vendida",
+  ALQUILADO: "Alquilada",
+};
+
+function SectionTitle({ id, children }: { id: string; children: string }) {
   return (
-    <div className="flex justify-between py-3 border-b border-zinc-100 last:border-0">
-      <dt className="text-zinc-600">{label}</dt>
-      <dd className="font-medium text-right text-zinc-900">{value}</dd>
-    </div>
+    <h2 id={id} className="font-display text-3xl leading-[1] font-normal tracking-[-0.02em] text-foreground md:text-4xl">
+      {children}
+    </h2>
   );
 }
 
 // --- Página Principal ---
+// Ficha de propiedad: encabezado editorial, galería, contenido a la
+// izquierda y tarjeta de contacto fija a la derecha (en mobile, barra
+// inferior con precio y acciones). Cierra con propiedades parecidas.
 export default async function PropertyPage({
   params: paramsPromise,
 }: {
@@ -191,7 +199,6 @@ export default async function PropertyPage({
 
   if (!property) notFound();
 
-  // 1. Cargar Recomendados
   const recommendedProperties = await getRecommendedProperties(
     property.id,
     property.city,
@@ -211,53 +218,29 @@ export default async function PropertyPage({
     property_amenities,
   } = property;
 
-  const locationString = [street_address, neighborhood, city, province]
-    .filter(Boolean)
-    .join(", ");
-  const statusLabels: { [key: string]: string } = {
-    EN_VENTA: "En Venta",
-    EN_ALQUILER: "En Alquiler",
-    RESERVADO: "Reservado",
-    VENDIDO: "Vendido",
-    ALQUILADO: "Alquilado",
-  };
-  const statusDisplay = statusLabels[status] || status;
+  const locationString = [street_address, neighborhood, city, province].filter(Boolean).join(", ");
+  const statusDisplay = STATUS_LABELS[status] || status;
+  const typeName = property.property_types?.name ?? null;
 
-  let priceDisplay = "Consultar Precio";
-  if (typeof price === "number" && price > 0) {
-    const formattedPrice = new Intl.NumberFormat("es-AR", {
-      style: "decimal",
-    }).format(price);
-    priceDisplay = `${currency || "USD"} $${formattedPrice}`;
-  }
+  const priceDisplay =
+    typeof price === "number" && price > 0
+      ? `${currency || "USD"} ${price.toLocaleString("es-AR")}`
+      : "Consultar precio";
 
-  const amenities =
-    property_amenities?.map((a) => a.amenities?.name).filter(Boolean) || [];
+  const amenities = property_amenities?.map((a) => a.amenities?.name).filter((n): n is string => Boolean(n)) || [];
   const images = [...(property_images || [])]
-    .sort(
-      (a, b) =>
-        (a.order ?? Number.MAX_SAFE_INTEGER) -
-        (b.order ?? Number.MAX_SAFE_INTEGER),
-    )
+    .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER))
     .map((img) => img.image_url)
     .filter((url): url is string => Boolean(url));
   const available = status === "EN_VENTA" || status === "EN_ALQUILER";
   const isRent =
-    property.operation_type?.toUpperCase() === "ALQUILER" ||
-    status === "EN_ALQUILER" ||
-    status === "ALQUILADO";
+    property.operation_type?.toUpperCase() === "ALQUILER" || status === "EN_ALQUILER" || status === "ALQUILADO";
   const priceLabel = isRent ? "Alquiler mensual" : "Precio de venta";
   const expensasDisplay =
-    property.expensas && property.expensas > 0
-      ? `ARS $${property.expensas.toLocaleString("es-AR")}`
-      : null;
+    property.expensas && property.expensas > 0 ? `ARS ${property.expensas.toLocaleString("es-AR")}` : null;
   const pricePerM2 =
-    !isRent &&
-    typeof price === "number" &&
-    price > 0 &&
-    property.total_area &&
-    property.total_area > 0
-      ? `${currency || "USD"} $${Math.round(price / property.total_area).toLocaleString("es-AR")}`
+    !isRent && typeof price === "number" && price > 0 && property.total_area && property.total_area > 0
+      ? `${currency || "USD"} ${Math.round(price / property.total_area).toLocaleString("es-AR")}`
       : null;
   const keyFacts = (
     [
@@ -268,290 +251,210 @@ export default async function PropertyPage({
       { icon: Ruler, label: "Sup. cubierta", value: property.covered_area, unit: "m²" },
       { icon: Car, label: "Cocheras", value: property.cocheras },
     ] as { icon: React.ElementType; label: string; value: number | string | null | undefined; unit?: string }[]
-  ).filter((f): f is Fact => f.value !== null && f.value !== undefined && f.value !== "");
-  const hasCoords =
-    typeof property.latitude === "number" &&
-    typeof property.longitude === "number";
+  ).filter((f): f is Fact => f.value !== null && f.value !== undefined && f.value !== "" && f.value !== 0);
+  const hasCoords = typeof property.latitude === "number" && typeof property.longitude === "number";
+  const refCode = property.id.slice(0, 8).toUpperCase();
+  // Resumen junto al precio: lo primero que se compara entre propiedades.
+  const headlineSpecs = [
+    property.bedrooms ? { key: "bed", icon: BedDouble, text: `${property.bedrooms} ${property.bedrooms === 1 ? "dormitorio" : "dormitorios"}` } : null,
+    property.bathrooms ? { key: "bath", icon: Bath, text: `${property.bathrooms} ${property.bathrooms === 1 ? "baño" : "baños"}` } : null,
+    property.total_area ? { key: "area", icon: Maximize2, text: `${Number(property.total_area).toLocaleString("es-AR")} m²` } : null,
+  ].filter(Boolean) as { key: string; icon: React.ElementType; text: string }[];
 
   return (
-    <main className="min-h-screen pb-24 lg:pb-0">
+    <div className="w-full bg-background pb-28 lg:pb-0">
       <ViewCounter propertyId={property.id} />
       <PropertyJsonLd property={property} />
 
-      <div className="container mx-auto max-w-[1480px] px-4 py-8 md:px-8 md:py-12">
-        {/* Header */}
-        <header className="mb-7 md:mb-9">
-          <Link
-            href="/propiedades"
-            className="mb-6 inline-flex items-center gap-2 text-sm text-zinc-600 hover:text-zinc-900"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver a las propiedades
-          </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-700">
-              {statusDisplay}
-            </span>
-            {property.property_types?.name && (
-              <span className="text-sm text-zinc-500">
-                {property.property_types.name}
-              </span>
-            )}
-          </div>
-          <div className="mt-3 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-4xl">
-              <h1 className="font-display text-3xl font-normal leading-tight text-zinc-900 md:text-5xl">
-                {title}
-              </h1>
+      <div className="mx-auto w-full max-w-7xl px-6 pt-8 md:px-8 md:pt-10">
+        {/* --- Portada: foto grande, presentación y tira de fotos --- */}
+        <Link
+          href="/propiedades"
+          className="mb-6 inline-flex items-center gap-2 rounded-full text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Todas las propiedades
+        </Link>
+
+        <PropertyMedia images={images} title={title}>
+          <header className="mt-10 grid grid-cols-1 gap-8 md:mt-14 lg:grid-cols-12 lg:items-end lg:gap-16">
+            <div className="min-w-0 lg:col-span-7">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{statusDisplay}</span>
+                {typeName ? ` · ${typeName}` : ""}
+              </p>
+              <SplitHeading
+                as="h1"
+                trigger="mount"
+                delay={0.3}
+                text={title}
+                className="mt-4 font-display text-5xl leading-[0.95] font-normal tracking-[-0.03em] text-balance text-foreground md:text-6xl lg:text-7xl"
+              />
               {locationString && (
-                <p className="mt-3 flex items-start gap-2 text-sm text-zinc-600 md:text-base">
-                  <MapPin size={18} className="mt-0.5 shrink-0" />
-                  <span>{locationString}</span>
+                <p className="site-rise mt-5 flex items-start gap-2 text-lg text-fg-secondary [--rise-delay:650ms]">
+                  <MapPin className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
+                  {locationString}
                 </p>
               )}
             </div>
-            <div className="flex shrink-0 items-center justify-between gap-4 md:block md:text-right">
-              <p className="font-display text-2xl font-normal text-zinc-900 md:text-3xl">
-                {priceDisplay}
-              </p>
-              <ShareButton
-                title={title}
-                price={priceDisplay}
-                location={locationString}
-              />
+
+            <div className="site-rise flex flex-col gap-5 lg:col-span-5 lg:items-end lg:text-right [--rise-delay:500ms]">
+              <div>
+                <p className="text-sm text-muted-foreground">{priceLabel}</p>
+                <p className="mt-1 font-display text-5xl leading-none font-normal tracking-[-0.02em] text-foreground md:text-6xl">
+                  {priceDisplay}
+                </p>
+                {expensasDisplay && <p className="mt-2 text-sm text-muted-foreground">+ {expensasDisplay} de expensas</p>}
+              </div>
+              {headlineSpecs.length > 0 && (
+                <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-fg-secondary lg:justify-end">
+                  {headlineSpecs.map(({ key, icon: Icon, text }) => (
+                    <li key={key} className="inline-flex items-center gap-1.5">
+                      <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                      {text}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex items-center gap-4 border-t border-border pt-5 lg:w-full lg:justify-end">
+                <span className="text-xs text-muted-foreground tabular-nums">Cód. {refCode}</span>
+                <ShareButton title={title} price={priceDisplay} location={locationString} />
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
+        </PropertyMedia>
 
-        <ImageGallery images={images} title={title} />
-
-        <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* Columna Principal (8 columnas) */}
-          <div className="space-y-14 lg:col-span-8">
-            {/* Datos clave */}
-            <section aria-labelledby="key-facts-title">
-              <h2
-                id="key-facts-title"
-                className="text-2xl font-semibold mb-5 text-zinc-900"
-              >
-                La propiedad de un vistazo
-              </h2>
-              <KeyFacts facts={keyFacts} />
-              <div className="mt-4 flex flex-wrap gap-2">
-                <FactChip icon={Building} label="Tipo" value={property.property_types?.name ?? null} />
-                <FactChip icon={Tag} label="Precio / m²" value={pricePerM2} />
+        {/* --- Contenido + contacto --- */}
+        <div className="mt-14 grid grid-cols-1 gap-16 lg:mt-20 lg:grid-cols-12 lg:gap-16">
+          <div className="flex flex-col gap-20 lg:col-span-7">
+            <section aria-labelledby="facts-title">
+              <SectionTitle id="facts-title">La propiedad de un vistazo</SectionTitle>
+              <div className="mt-10">
+                <KeyFacts facts={keyFacts} />
+              </div>
+              <div className="mt-8 flex flex-wrap gap-2">
+                <FactChip icon={Building} label="Tipo" value={typeName} />
+                <FactChip icon={Tag} label="Precio por m²" value={pricePerM2} />
                 <FactChip icon={Receipt} label="Expensas" value={expensasDisplay} />
                 <FactChip icon={CalendarClock} label="Antigüedad" value={property.antiguedad} />
               </div>
             </section>
 
-            {/* Descripción */}
-            <section>
-              <h2 className="text-2xl font-semibold mb-4 text-zinc-900">
-                Descripción
-              </h2>
-              <DescriptionWithReadMore
-                text={property.description || "No hay descripción disponible."}
-              />
-            </section>
-
-            {/* Amenities */}
-            {amenities.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold mb-6 text-zinc-900">
-                  Características
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8">
-                  {amenities.map((name) => (
-                    <div
-                      key={name}
-                      className="flex items-center gap-3 text-zinc-700"
-                    >
-                      <CheckCircle size={18} className="text-black shrink-0" />
-                      <span>{name}</span>
-                    </div>
-                  ))}
+            <Reveal>
+              <section aria-labelledby="desc-title">
+                <SectionTitle id="desc-title">Descripción</SectionTitle>
+                <div className="mt-8">
+                  <DescriptionWithReadMore text={property.description || ""} />
                 </div>
+              </section>
+            </Reveal>
+
+            {amenities.length > 0 && (
+              <section aria-labelledby="amenities-title">
+                <SectionTitle id="amenities-title">Características</SectionTitle>
+                <ul className="mt-8 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+                  {amenities.map((name, i) => (
+                    <StaggerItem
+                      as="li"
+                      key={name}
+                      index={i}
+                      columns={2}
+                      className="flex items-center gap-3 border-b border-border pb-4 text-base text-foreground"
+                    >
+                      <Check className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      {name}
+                    </StaggerItem>
+                  ))}
+                </ul>
               </section>
             )}
 
-            {/* Ficha Técnica */}
-            <section>
-              <h2 className="text-2xl font-semibold mb-6 text-zinc-900">
-                Ficha Técnica
-              </h2>
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
-                <div className="grid md:grid-cols-2 gap-x-12 gap-y-2">
-                  <TechSpecItem label="Precio" value={priceDisplay} />
-                  <TechSpecItem
-                    label="Expensas"
-                    value={
-                      property.expensas === null
-                        ? "No informadas"
-                        : `ARS $${property.expensas.toLocaleString("es-AR")}`
-                    }
-                  />
-                  <TechSpecItem
-                    label="Antigüedad"
-                    value={property.antiguedad}
-                  />
-                  <TechSpecItem
-                    label="Superficie Total"
-                    value={
-                      property.total_area !== null
-                        ? `${property.total_area} m²`
-                        : null
-                    }
-                  />
-                  <TechSpecItem
-                    label="Superficie Cubierta"
-                    value={
-                      property.covered_area !== null
-                        ? `${property.covered_area} m²`
-                        : null
-                    }
-                  />
-                  <TechSpecItem label="Cocheras" value={property.cocheras} />
-                  <TechSpecItem
-                    label="ID Ref"
-                    value={property.id.slice(0, 8)}
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Mapa */}
-            <section>
-              <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-semibold text-zinc-900">
-                    Ubicación
-                  </h2>
-                  {locationString && (
-                    <p className="mt-1 text-sm text-zinc-600">{locationString}</p>
+            <Reveal>
+              <section aria-labelledby="map-title">
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <div>
+                    <SectionTitle id="map-title">Ubicación</SectionTitle>
+                    {locationString && <p className="mt-3 text-base text-fg-secondary">{locationString}</p>}
+                  </div>
+                  {hasCoords && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Navigation className="h-4 w-4" aria-hidden="true" />
+                      Cómo llegar
+                    </a>
                   )}
                 </div>
-                {hasCoords && (
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-50"
-                  >
-                    <Navigation className="h-4 w-4" />
-                    Cómo llegar
-                  </a>
-                )}
-              </div>
-              <div className="h-[380px] w-full overflow-hidden rounded-2xl border border-zinc-200 md:h-[460px]">
-                <ClientPropertyMap
-                  lat={property.latitude}
-                  lng={property.longitude}
-                  title={property.title}
-                />
-              </div>
-            </section>
+                <div className="mt-8 h-[380px] w-full overflow-hidden rounded-3xl bg-sunken md:h-[460px]">
+                  <ClientPropertyMap lat={property.latitude} lng={property.longitude} title={property.title} />
+                </div>
+              </section>
+            </Reveal>
+
+            <Reveal>
+              <section aria-labelledby="inquiry-title" className="rounded-4xl bg-surface-alt p-6 md:p-10">
+                <SectionTitle id="inquiry-title">Consultá por esta propiedad</SectionTitle>
+                <p className="mt-3 mb-8 text-base text-fg-secondary">Tu consulta le llega directo al asesor a cargo.</p>
+                <PropertyInquiryForm propertyId={property.id} title={title} />
+              </section>
+            </Reveal>
           </div>
 
-          {/* Aside (4 columnas) */}
-          <aside className="lg:col-span-4">
-            <div className="sticky top-24 space-y-8">
-              <AgentCard
-                agent={property.agents}
-                propertyTitle={property.title}
+          <aside className="hidden lg:col-span-5 lg:block">
+            <div className="sticky top-28">
+              <PropertyContactCard
                 propertyId={property.id}
+                title={title}
                 available={available}
                 priceDisplay={priceDisplay}
                 priceLabel={priceLabel}
-                statusDisplay={statusDisplay}
                 expensasDisplay={expensasDisplay}
+                agent={property.agents}
               />
             </div>
           </aside>
         </div>
-
-        {/* --- SECCIÓN: PROPIEDADES RECOMENDADAS --- */}
-        {recommendedProperties && recommendedProperties.length > 0 && (
-          <section className="mt-24 border-t pt-16">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="font-display text-2xl md:text-3xl font-normal">
-                También te puede interesar
-              </h2>
-              <Link
-                href="/propiedades"
-                className="hidden md:flex items-center text-sm font-medium hover:underline"
-              >
-                Ver todas <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {recommendedProperties.map((prop) => {
-                const mainImg =
-                  prop.property_images?.[0]?.image_url || "/placeholder.jpg";
-                let priceFmt = "Consultar Precio";
-                if (prop.price && prop.price > 0) {
-                  priceFmt = `${prop.currency} $${prop.price.toLocaleString(
-                    "es-AR",
-                  )}`;
-                }
-
-                return (
-                  <Link
-                    key={prop.id}
-                    href={`/propiedades/${prop.id}`}
-                    className="group block"
-                  >
-                    <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-zinc-100 mb-4">
-                      <Image
-                        src={mainImg}
-                        alt={prop.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    <h3 className="font-semibold text-lg truncate text-zinc-900 group-hover:text-zinc-600 transition-colors">
-                      {prop.title}
-                    </h3>
-                    <p className="text-zinc-500 text-sm mb-2">
-                      {prop.city}, {prop.province}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-lg">
-                        {priceFmt}
-                      </p>
-                      {(prop.total_area || prop.bedrooms) && (
-                        <div className="flex gap-3 text-xs text-zinc-500">
-                          {prop.bedrooms && <span>{prop.bedrooms} Dorm</span>}
-                          {prop.total_area && <span>{prop.total_area} m²</span>}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-            <div className="mt-8 text-center md:hidden">
-              <Link
-                href="/propiedades"
-                className="inline-flex items-center text-sm font-medium hover:underline"
-              >
-                Ver todas las propiedades{" "}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
-          </section>
-        )}
       </div>
 
+      {/* --- Parecidas --- */}
+      {recommendedProperties.length > 0 && (
+        <section aria-labelledby="reco-title" className="mt-24 w-full bg-surface-alt lg:mt-36">
+          <div className="mx-auto w-full max-w-7xl px-6 py-20 md:px-8 lg:py-28">
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <SplitHeading
+                id="reco-title"
+                text="También te puede interesar"
+                className="max-w-[16ch] font-display text-4xl leading-[0.95] font-normal tracking-[-0.03em] text-foreground md:text-5xl"
+              />
+              <Link
+                href={isRent ? "/propiedades?tipo=alquiler" : "/propiedades?tipo=venta"}
+                className="group inline-flex items-center gap-1.5 text-sm font-semibold text-foreground underline-offset-4 hover:underline"
+              >
+                Ver todas
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </Link>
+            </div>
+            <ul className="mt-12 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+              {recommendedProperties.map((p, i) => (
+                <StaggerItem as="li" key={p.id} index={i}>
+                  <PropertyCard property={p} />
+                </StaggerItem>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       <MobileContactBar
-        agent={property.agents}
-        propertyTitle={property.title}
         propertyId={property.id}
+        title={title}
         available={available}
         priceDisplay={priceDisplay}
         priceLabel={priceLabel}
       />
-    </main>
+    </div>
   );
 }

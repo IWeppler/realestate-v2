@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Check, Loader2, MessageCircle, Phone } from "lucide-react";
 import { createLeadFromPublic } from "@/features/actions/createLeadActions";
-import { whatsappLink } from "@/lib/brand";
+import { propertyUrl, whatsappLink } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import { Field, inputClass, invalidProps, submitClass } from "@/features/public/v2/formParts";
 
@@ -26,9 +26,9 @@ const primaryClass =
 const secondaryClass =
   "inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-full border border-border-strong px-6 text-base font-semibold whitespace-nowrap text-foreground transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
-function waMessage(title: string) {
-  const url = typeof window !== "undefined" ? window.location.href : "";
-  return `Hola, me interesa la propiedad "${title}"${url ? ` (${url})` : ""}. ¿Me pasan más información?`;
+// Mismo texto en servidor y cliente (sin window): la URL sale de la marca.
+function waMessage(title: string, id: string) {
+  return `Hola, me interesa la propiedad "${title}" (${propertyUrl(id)}). ¿Me pasan más información?`;
 }
 
 function initials(name: string) {
@@ -77,7 +77,7 @@ export function PropertyContactCard({
           </p>
         )}
         <a
-          href={whatsappLink(waMessage(title))}
+          href={whatsappLink(waMessage(title, propertyId))}
           target="_blank"
           rel="noopener noreferrer"
           className={available ? secondaryClass : primaryClass}
@@ -95,6 +95,7 @@ export function PropertyContactCard({
               alt=""
               width={48}
               height={48}
+              unoptimized
               className="h-12 w-12 shrink-0 rounded-full object-cover"
             />
           ) : (
@@ -245,7 +246,7 @@ export function MobileContactBar({
           <p className="truncate text-lg font-semibold text-foreground">{priceDisplay}</p>
         </div>
         <a
-          href={whatsappLink(waMessage(title))}
+          href={whatsappLink(waMessage(title, propertyId))}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Consultar por WhatsApp"
