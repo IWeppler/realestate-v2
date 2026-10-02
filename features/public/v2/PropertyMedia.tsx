@@ -43,9 +43,9 @@ export function PropertyMedia({
           type="button"
           onClick={() => open(0)}
           aria-label={`Ver las ${images.length} fotos de ${title}`}
-          className="group relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-4xl bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background md:aspect-[16/9] lg:aspect-auto lg:h-[min(46rem,calc(100dvh-10rem))]"
-          initial={reduce ? false : { clipPath: "inset(6% 5% 0% 5% round 40px)" }}
-          animate={{ clipPath: "inset(0% 0% 0% 0% round 40px)" }}
+          className="group relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-[8px] bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background md:aspect-[16/9] lg:aspect-auto lg:h-[min(46rem,calc(100dvh-10rem))]"
+          initial={reduce ? false : { clipPath: "inset(6% 5% 0% 5% round 8px)" }}
+          animate={{ clipPath: "inset(0% 0% 0% 0% round 8px)" }}
           transition={{ duration: 1.3, ease: EASE }}
         >
           <motion.span
@@ -66,7 +66,7 @@ export function PropertyMedia({
           </motion.span>
         </motion.button>
       ) : (
-        <div className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-4xl bg-sunken text-muted-foreground">
+        <div className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-[8px] bg-sunken text-muted-foreground">
           <Images className="h-8 w-8 opacity-50" aria-hidden="true" />
           Todavía no hay fotos de esta propiedad
         </div>
@@ -85,7 +85,7 @@ export function PropertyMedia({
               <button
                 type="button"
                 onClick={() => open(0)}
-                className="flex h-40 w-40 shrink-0 cursor-pointer flex-col justify-between rounded-2xl bg-foreground p-5 text-left text-background transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:h-56 md:w-56"
+                className="flex h-40 w-40 shrink-0 cursor-pointer flex-col justify-between rounded-[8px] bg-foreground p-5 text-left text-background transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:h-56 md:w-56"
               >
                 <Images className="h-5 w-5 opacity-70" aria-hidden="true" />
                 <span>
@@ -100,7 +100,7 @@ export function PropertyMedia({
                   type="button"
                   onClick={() => open(i + 1)}
                   aria-label={`Abrir foto ${i + 2} de ${images.length}`}
-                  className="group relative block h-40 w-[13.5rem] shrink-0 cursor-zoom-in overflow-hidden rounded-2xl bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:h-56 md:w-[18.5rem]"
+                  className="group relative block h-40 w-[13.5rem] shrink-0 cursor-zoom-in overflow-hidden rounded-[8px] bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:h-56 md:w-[18.5rem]"
                 >
                   <CardImage src={src} alt={`Foto ${i + 2} de ${title}`} sizes="300px" />
                 </button>

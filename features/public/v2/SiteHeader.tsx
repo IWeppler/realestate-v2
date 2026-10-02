@@ -1,10 +1,11 @@
 "use client";
 
+import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, MessageCircle } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useHideOnScroll } from "@/hooks/use-hide-on-scroll";
 import { BRAND, whatsappLink } from "@/lib/brand";
 import { CONTACT_CTA_LABEL } from "@/features/public/v2/content";
@@ -218,7 +219,7 @@ export function SiteHeader() {
                   rel="noopener noreferrer"
                   className="inline-flex h-[52px] w-fit items-center gap-2 rounded-full bg-background px-7 text-base font-semibold whitespace-nowrap text-foreground transition-[background-color,transform] hover:bg-main-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background active:scale-[0.98]"
                 >
-                  <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                  <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
                   {CONTACT_CTA_LABEL}
                 </a>
                 <dl className="grid grid-cols-1 gap-4 border-t border-background/12 pt-6 sm:grid-cols-2 lg:grid-cols-1">

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { Check, ChevronDown, X } from "lucide-react";
+import { ArrowUpDown, Check, ChevronDown, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useFilterParams } from "@/features/properties/useFilterParams";
@@ -44,16 +44,18 @@ function Segmented({
   options,
   value,
   onChange,
+  className,
 }: {
   id: string;
   label: string;
   options: Option[];
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 }) {
   const reduce = useReducedMotion();
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex h-10 shrink-0 items-center rounded-full bg-muted p-1">
+    <div role="radiogroup" aria-label={label} className={cn("inline-flex h-10 shrink-0 items-center rounded-full bg-muted p-1", className)}>
       {options.map((o) => {
         const active = value === o.value;
         return (
@@ -190,16 +192,23 @@ export function ListingToolbar({ types, amenities, cities, locations, view }: Pr
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+      <div className="flex items-center gap-2 md:gap-3">
         <div className="min-w-0 flex-1 md:max-w-xl">
           <PropertySearchCombobox locations={locations} />
         </div>
-        <div className="flex items-center gap-2 md:ml-auto">
+        <div className="flex shrink-0 items-center gap-2 md:ml-auto">
           <Popover>
             <PopoverTrigger asChild>
-              <button type="button" className={cn(pillBase, pillIdle)} aria-label={`Ordenar: ${sortLabel}`}>
-                <span className="hidden text-muted-foreground sm:inline">Ordenar:</span> {sortLabel}
-                <ChevronDown className="h-4 w-4 opacity-60" aria-hidden="true" />
+              <button
+                type="button"
+                className={cn(pillBase, pillIdle, "max-md:size-11 max-md:justify-center max-md:p-0")}
+                aria-label={`Ordenar: ${sortLabel}`}
+              >
+                <ArrowUpDown className="h-4 w-4 md:hidden" aria-hidden="true" />
+                <span className="hidden md:inline">
+                  <span className="text-muted-foreground">Ordenar:</span> {sortLabel}
+                </span>
+                <ChevronDown className="hidden h-4 w-4 opacity-60 md:block" aria-hidden="true" />
               </button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-52 rounded-2xl p-2">
@@ -232,6 +241,7 @@ export function ListingToolbar({ types, amenities, cities, locations, view }: Pr
               { value: "mapa", label: "Mapa" },
             ]}
             onChange={(v) => setParam("vista", v)}
+            className="max-md:hidden"
           />
         </div>
       </div>
@@ -239,11 +249,23 @@ export function ListingToolbar({ types, amenities, cities, locations, view }: Pr
       {/* En mobile la fila se desliza de costado; en desktop hace salto de línea. */}
       <div className="-mx-6 flex items-center gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
         <Segmented
+          id="view-m"
+          label="Vista"
+          value={view === "mapa" ? "mapa" : ""}
+          options={[
+            { value: "", label: "Lista" },
+            { value: "mapa", label: "Mapa" },
+          ]}
+          onChange={(v) => setParam("vista", v)}
+          className="md:hidden"
+        />
+        <Segmented
           id="op"
           label="Operación"
           options={OPERATIONS}
           value={searchParams.get("tipo") ?? ""}
           onChange={(v) => setParam("tipo", v)}
+          className="max-md:hidden"
         />
         <span className="mx-1 hidden h-6 w-px bg-border md:block" aria-hidden="true" />
         {filter("typeId", "Tipo", typeOptions)}

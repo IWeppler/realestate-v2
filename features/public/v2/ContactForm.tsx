@@ -1,7 +1,8 @@
 "use client";
 
+import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
 import { useActionState, useState } from "react";
-import { ArrowRight, Check, Loader2, MessageCircle } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { createContactLeadAction } from "@/features/actions/createContactLeadAction";
 import { whatsappLink } from "@/lib/brand";
 import { CONTACT_CTA_LABEL } from "@/features/public/v2/content";
@@ -53,7 +54,7 @@ export function ContactForm() {
           rel="noopener noreferrer"
           className="inline-flex h-[52px] items-center gap-2 rounded-full border border-border-strong px-7 text-base font-semibold whitespace-nowrap text-foreground transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
           {CONTACT_CTA_LABEL}
         </a>
       </div>

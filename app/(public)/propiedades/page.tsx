@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
 import { createClientServer } from "@/lib/supabase";
 import { whatsappLink } from "@/lib/brand";
 import PropertyCard from "@/features/properties/PropertyCard";
@@ -190,7 +190,7 @@ export default async function PropiedadesPage({
           rel="noopener noreferrer"
           className="inline-flex h-[52px] items-center gap-2 rounded-full border border-border-strong px-7 text-base font-semibold whitespace-nowrap text-foreground transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
           {CONTACT_CTA_LABEL}
         </a>
       </div>
@@ -205,7 +205,7 @@ export default async function PropiedadesPage({
       <div className="w-full bg-background">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 pt-6 pb-10 md:px-8 md:pt-8">
           {header(true)}
-          <div key="mapa" className="site-fade relative h-[calc(100dvh-6rem)] min-h-[560px]">
+          <div key="mapa" className="site-fade relative h-[calc(100dvh-4rem)] min-h-[640px] lg:h-[calc(100dvh-6rem)] lg:min-h-[560px]">
             {count > 0 ? (
               <PublicMapView properties={(data ?? []) as unknown as MapProperty[]} />
             ) : (

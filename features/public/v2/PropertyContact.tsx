@@ -1,9 +1,10 @@
 "use client";
 
+import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
 import { useActionState, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, Loader2, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, CalendarDays, Check, Loader2, Phone } from "lucide-react";
 import { createLeadFromPublic } from "@/features/actions/createLeadActions";
 import { propertyUrl, whatsappLink } from "@/lib/brand";
 import { cn } from "@/lib/utils";
@@ -82,7 +83,7 @@ export function PropertyContactCard({
           rel="noopener noreferrer"
           className={available ? secondaryClass : primaryClass}
         >
-          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
           Consultar por WhatsApp
         </a>
       </div>
@@ -252,7 +253,7 @@ export function MobileContactBar({
           aria-label="Consultar por WhatsApp"
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border-strong text-foreground"
         >
-          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
         </a>
         {available && (
           <Link

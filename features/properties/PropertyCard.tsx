@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Bath, BedDouble, Car, ImageOff, Maximize } from "lucide-react";
+import { Bath, BedDouble, Car, Maximize } from "lucide-react";
 import type { PropertyCardData } from "@/app/types/entities";
 import { formatPrice } from "@/lib/brand";
-import { CardImage } from "@/features/properties/CardImage";
+import { CardCarousel } from "@/features/properties/CardCarousel";
 
 type PropertyCardProps = {
   property: PropertyCardData;
@@ -105,22 +105,17 @@ export function PropertyMeta({
 // Sin caja, bordes ni nada encima de la foto. Toda la tarjeta lleva a la
 // ficha (link estirado sobre el título).
 export default function PropertyCard({ property }: PropertyCardProps) {
-  const cover = cardImages(property.property_images as OrderedImage[] | null)[0];
+  const images = cardImages(property.property_images as OrderedImage[] | null);
 
   return (
     <article className="group relative flex flex-col">
       <div className="relative aspect-4/3 w-full overflow-hidden rounded-[8px] bg-sunken ring-ring ring-offset-2 ring-offset-background group-has-[a:focus-visible]:ring-2">
-        {cover ? (
-          <CardImage
-            src={cover}
-            alt={property.title || "Propiedad"}
-            sizes="(min-width: 1280px) 30vw, (min-width: 640px) 50vw, 100vw"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-fg-disabled">
-            <ImageOff className="h-6 w-6" aria-hidden="true" />
-          </div>
-        )}
+        <CardCarousel
+          images={images}
+          title={property.title || "Propiedad"}
+          href={`/propiedades/${property.id}`}
+          sizes="(min-width: 1280px) 30vw, (min-width: 640px) 50vw, 100vw"
+        />
       </div>
 
       <PropertyMeta property={property} />

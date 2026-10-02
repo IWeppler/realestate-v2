@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { ImageOff, MapPin, MapPinOff } from "lucide-react";
+import { MapPin, MapPinOff, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CardImage } from "@/features/properties/CardImage";
+import { CardCarousel } from "@/features/properties/CardCarousel";
 import { PropertyMeta, cardImages } from "@/features/properties/PropertyCard";
 import type { PropertyCardData } from "@/app/types/entities";
 import {
   isLocated,
+  PropertyPreview,
   type LocatedProperty,
   type MapProperty,
 } from "@/features/properties/PublicPropertiesMap";
@@ -34,6 +35,7 @@ export function PublicMapView({ properties }: { properties: MapProperty[] }) {
   const unlocated = useMemo(() => properties.filter((p) => !isLocated(p)), [properties]);
 
   const highlightedId = activeId ?? selectedId;
+  const selectedProperty = located.find((p) => p.id === selectedId) ?? null;
 
   // Hover o click en un pin: traer la tarjeta a la vista del panel. Solo
   // desde el mapa; el hover en la propia lista no la desplaza.
@@ -58,7 +60,7 @@ export function PublicMapView({ properties }: { properties: MapProperty[] }) {
   };
 
   return (
-    <div className="absolute inset-0 grid grid-rows-[minmax(0,1fr)_minmax(0,1.1fr)] gap-4 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:grid-rows-1 lg:gap-6 xl:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
+    <div className="absolute inset-0 grid grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:grid-rows-1 lg:gap-6 xl:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
       <aside className="order-2 flex min-h-0 flex-col lg:order-1">
         {unlocated.length > 0 && (
           <p className="pb-3 text-xs text-muted-foreground">
@@ -72,7 +74,7 @@ export function PublicMapView({ properties }: { properties: MapProperty[] }) {
           {[...located, ...unlocated].map((p) => {
             const onMap = isLocated(p);
             const highlighted = highlightedId === p.id;
-            const cover = cardImages(p.property_images)[0];
+            const images = cardImages(p.property_images);
             return (
               <li
                 key={p.id}
@@ -90,13 +92,12 @@ export function PublicMapView({ properties }: { properties: MapProperty[] }) {
                     highlighted && "ring-2 ring-main",
                   )}
                 >
-                  {cover ? (
-                    <CardImage src={cover} alt={p.title} sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 420px, 50vw" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-fg-disabled">
-                      <ImageOff className="h-6 w-6" aria-hidden="true" />
-                    </div>
-                  )}
+                  <CardCarousel
+                    images={images}
+                    title={p.title}
+                    href={`/propiedades/${p.id}`}
+                    sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 420px, 50vw"
+                  />
                 </div>
 
                 <PropertyMeta property={p as unknown as PropertyCardData} compact />
@@ -140,6 +141,22 @@ export function PublicMapView({ properties }: { properties: MapProperty[] }) {
             onSelect={onMapSelect}
             focus={focus}
           />
+        )}
+
+        {/* Mobile: la vista previa va como tarjeta fija sobre el mapa (el popup
+            flotante no entra en una pantalla chica). */}
+        {selectedProperty && (
+          <div className="absolute inset-x-3 bottom-3 z-10 lg:hidden">
+            <PropertyPreview property={selectedProperty} className="w-full" />
+            <button
+              type="button"
+              aria-label="Cerrar vista previa"
+              onClick={() => setSelectedId(null)}
+              className="absolute top-2 right-2 inline-flex size-8 cursor-pointer items-center justify-center rounded-full bg-card/95 text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         )}
       </div>
     </div>

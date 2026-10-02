@@ -221,12 +221,12 @@ function PriceMarkers({
   );
 }
 
-function Popup({ property }: { property: LocatedProperty }) {
+export function PropertyPreview({ property, className }: { property: LocatedProperty; className?: string }) {
   const image = cardImages(property.property_images)[0];
   return (
     <Link
       href={`/propiedades/${property.id}`}
-      className="site-public group block w-[260px] overflow-hidden rounded-lg border border-border bg-card text-foreground shadow-[0_16px_40px_-12px_rgb(28_33_38/0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn("site-public group block w-[260px] overflow-hidden rounded-lg border border-border bg-card text-foreground shadow-[0_16px_40px_-12px_rgb(28_33_38/0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", className)}
     >
       <div className="relative h-[150px] bg-muted">
         {image && (
@@ -325,9 +325,9 @@ export default function PublicPropertiesMap({
           closeOnClick={false}
           onClose={() => onSelect(null)}
           key={selected.id}
-          className="max-w-none rounded-lg border-0 bg-transparent p-0 shadow-none"
+          className="max-w-none rounded-lg border-0 bg-transparent p-0 shadow-none max-lg:hidden"
         >
-          <Popup property={selected} />
+          <PropertyPreview property={selected} />
         </MapPopup>
       )}
     </Map>

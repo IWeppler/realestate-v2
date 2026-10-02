@@ -268,13 +268,16 @@ export default async function PropertyPage({
 
       <div className="mx-auto w-full max-w-7xl px-6 pt-8 md:px-8 md:pt-10">
         {/* --- Portada: foto grande, presentación y tira de fotos --- */}
-        <Link
-          href="/propiedades"
-          className="mb-6 inline-flex items-center gap-2 rounded-full text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Todas las propiedades
-        </Link>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <Link
+            href="/propiedades"
+            className="inline-flex items-center gap-2 rounded-full text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Todas las propiedades
+          </Link>
+          <ShareButton title={title} price={priceDisplay} location={locationString} />
+        </div>
 
         <PropertyMedia images={images} title={title}>
           <header className="mt-10 grid grid-cols-1 gap-8 md:mt-14 lg:grid-cols-12 lg:items-end lg:gap-16">
@@ -318,7 +321,6 @@ export default async function PropertyPage({
               )}
               <div className="flex items-center gap-4 border-t border-border pt-5 lg:w-full lg:justify-end">
                 <span className="text-xs text-muted-foreground tabular-nums">Cód. {refCode}</span>
-                <ShareButton title={title} price={priceDisplay} location={locationString} />
               </div>
             </div>
           </header>
