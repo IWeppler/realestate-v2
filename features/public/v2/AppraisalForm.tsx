@@ -1,6 +1,6 @@
 "use client";
 
-import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
+import { FaWhatsapp } from "react-icons/fa";
 import { useActionState, useState } from "react";
 import { ArrowRight, Check, ChevronDown, Loader2 } from "lucide-react";
 import { createAppraisalLeadAction } from "@/features/actions/createAppraisalLeadAction";
@@ -54,7 +54,7 @@ export function AppraisalForm({ propertyTypes }: { propertyTypes: string[] }) {
           rel="noopener noreferrer"
           className="inline-flex h-[52px] items-center gap-2 rounded-full border border-border-strong px-7 text-base font-semibold whitespace-nowrap text-foreground transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
+          <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
           {CONTACT_CTA_LABEL}
         </a>
       </div>

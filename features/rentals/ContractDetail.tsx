@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { FileText, Loader2, MessageCircle, Plus, Trash2, TrendingUp } from "lucide-react";
+import { FileText, Loader2, Plus, Trash2, TrendingUp } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -117,7 +118,7 @@ export function ContractDetail({ c }: { c: ContractDetailData }) {
 
       {overdue.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-danger/30 bg-danger/5 p-4 text-sm">
         <span><strong>{overdue.length} cargos vencidos</strong> · saldo {money(overdueTotal, c.currency)} · mayor atraso: {Math.max(...overdue.map((charge) => daysBetween(charge.due_date, c.today)))} días</span>
-        {overdueWa && <Button asChild size="sm" variant="outline"><a href={overdueWa} target="_blank" rel="noopener noreferrer"><MessageCircle /> Reclamar por WhatsApp</a></Button>}
+        {overdueWa && <Button asChild size="sm" variant="outline"><a href={overdueWa} target="_blank" rel="noopener noreferrer"><FaWhatsapp /> Reclamar por WhatsApp</a></Button>}
       </div>}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
@@ -195,7 +196,7 @@ export function ContractDetail({ c }: { c: ContractDetailData }) {
             {c.adjustmentPreview && "error" in c.adjustmentPreview && c.adjustment_index !== "MANUAL" && <p className="text-xs text-warning">{c.adjustmentPreview.error} <Link href="/dashboard/ajustes" className="underline">Cargar índice</Link></p>}
             {c.adjustment_index === "MANUAL" && nextAdjustment && <div><Label>Nuevo canon manual</Label><Input type="number" min="0.01" step="0.01" value={manualAmount || ""} onChange={(event) => setManualAmount(Number(event.target.value))} /></div>}
             {nextAdjustment && <Button className="w-full" disabled={!!busy || c.status !== "ACTIVO" || nextAdjustment > c.today || (c.adjustment_index === "MANUAL" && manualAmount <= 0) || (c.adjustment_index !== "MANUAL" && !!c.adjustmentPreview && "error" in c.adjustmentPreview)} onClick={() => run("adjust", () => applyAdjustmentAction(c.id, c.adjustment_index === "MANUAL" ? manualAmount : undefined))}>{busy === "adjust" ? <Loader2 className="size-4 animate-spin" /> : "Aplicar ajuste"}</Button>}
-            {adjustmentWa && nextAdjustment && daysBetween(c.today, nextAdjustment) <= 30 && daysBetween(c.today, nextAdjustment) >= 0 && <Button asChild className="w-full" variant="outline"><a href={adjustmentWa} target="_blank" rel="noopener noreferrer"><MessageCircle /> Avisar al inquilino</a></Button>}
+            {adjustmentWa && nextAdjustment && daysBetween(c.today, nextAdjustment) <= 30 && daysBetween(c.today, nextAdjustment) >= 0 && <Button asChild className="w-full" variant="outline"><a href={adjustmentWa} target="_blank" rel="noopener noreferrer"><FaWhatsapp /> Avisar al inquilino</a></Button>}
             {c.adjustments.length > 0 && <div className="space-y-1 border-t border-border pt-3 text-xs text-muted-foreground">{c.adjustments.map((item) => <p key={item.id}>{formatDate(item.effective_date)} · {item.index_code} · {money(item.previous_amount, c.currency)} → {money(item.new_amount, c.currency)}</p>)}</div>}
           </CardContent></Card>
 

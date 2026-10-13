@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
+import { FaWhatsapp } from "react-icons/fa";
 import Link from "next/link";
 import { createClientServer } from "@/lib/supabase";
 import { whatsappLink } from "@/lib/brand";
@@ -190,7 +190,7 @@ export default async function PropiedadesPage({
           rel="noopener noreferrer"
           className="inline-flex h-[52px] items-center gap-2 rounded-full border border-border-strong px-7 text-base font-semibold whitespace-nowrap text-foreground transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
+          <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
           {CONTACT_CTA_LABEL}
         </a>
       </div>

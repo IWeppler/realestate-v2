@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
+import { FaWhatsapp } from "react-icons/fa";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -222,7 +222,7 @@ export default async function AgendarPage({
               <p className="text-sm font-semibold text-zinc-900">Qué esperar</p>
               <ul className="mt-3 space-y-3 text-sm text-zinc-600">
                 <li className="flex gap-3">
-                  <WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
+                  <FaWhatsapp className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
                   Te confirmamos el turno por WhatsApp o teléfono.
                 </li>
                 <li className="flex gap-3">

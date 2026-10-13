@@ -1,6 +1,6 @@
 "use client";
 
-import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
+import { FaWhatsapp } from "react-icons/fa";
 import { useActionState, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -83,7 +83,7 @@ export function PropertyContactCard({
           rel="noopener noreferrer"
           className={available ? secondaryClass : primaryClass}
         >
-          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
+          <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
           Consultar por WhatsApp
         </a>
       </div>
@@ -253,7 +253,7 @@ export function MobileContactBar({
           aria-label="Consultar por WhatsApp"
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border-strong text-foreground"
         >
-          <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
+          <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
         </a>
         {available && (
           <Link

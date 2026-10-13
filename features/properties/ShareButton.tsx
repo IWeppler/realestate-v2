@@ -1,6 +1,6 @@
 "use client";
 
-import { WhatsAppIcon } from "@/shared/components/WhatsAppIcon";
+import { FaWhatsapp } from "react-icons/fa";
 import { useState, useSyncExternalStore } from "react";
 import { Check, Link as LinkIcon, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -101,7 +101,7 @@ export function ShareButton({ title, price, location, url }: ShareButtonProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={handleWhatsApp}>
-          <WhatsAppIcon className="mr-2 h-4 w-4 text-green-600" />
+          <FaWhatsapp className="mr-2 h-4 w-4 text-green-600" />
           WhatsApp
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleCopyLink}>
