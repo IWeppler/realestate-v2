@@ -23,7 +23,9 @@ type NominatimResult = { lat: string; lon: string; display_name: string };
 
 const ENDPOINT = "https://nominatim.openstreetmap.org/search";
 
-async function search(params: Record<string, string>): Promise<NominatimResult[]> {
+async function search(
+  params: Record<string, string>,
+): Promise<NominatimResult[]> {
   const qs = new URLSearchParams({
     ...params,
     country: "Argentina",
@@ -40,13 +42,22 @@ async function search(params: Record<string, string>): Promise<NominatimResult[]
   return (await res.json()) as NominatimResult[];
 }
 
-function toCandidates(results: NominatimResult[], precision: GeocodeCandidate["precision"]): GeocodeCandidate[] {
+function toCandidates(
+  results: NominatimResult[],
+  precision: GeocodeCandidate["precision"],
+): GeocodeCandidate[] {
   const seen = new Set<string>();
   return results
-    .map((r) => ({ lat: Number(r.lat), lon: Number(r.lon), label: r.display_name, precision }))
+    .map((r) => ({
+      lat: Number(r.lat),
+      lon: Number(r.lon),
+      label: r.display_name,
+      precision,
+    }))
     .filter((c) => {
       const key = `${c.lat.toFixed(5)},${c.lon.toFixed(5)}`;
-      if (!Number.isFinite(c.lat) || !Number.isFinite(c.lon) || seen.has(key)) return false;
+      if (!Number.isFinite(c.lat) || !Number.isFinite(c.lon) || seen.has(key))
+        return false;
       seen.add(key);
       return true;
     });
@@ -69,10 +80,16 @@ export async function GET(request: NextRequest) {
 
   try {
     if (street) {
-      const exact = toCandidates(await search({ street, city, state: province }), "street");
+      const exact = toCandidates(
+        await search({ street, city, state: province }),
+        "street",
+      );
       if (exact.length > 0) return Response.json({ candidates: exact });
     }
-    const locality = toCandidates(await search({ city, state: province }), "locality");
+    const locality = toCandidates(
+      await search({ city, state: province }),
+      "locality",
+    );
     if (locality.length > 0) return Response.json({ candidates: locality });
 
     const region = toCandidates(await search({ state: province }), "region");
